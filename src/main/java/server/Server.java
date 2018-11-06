@@ -24,22 +24,20 @@ public class Server {
     new Server();
   }
 
-  Connection conn;
-
-  public Server() throws SQLException {
-    conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/Assign2?user=root&password=");
+  private Server() throws SQLException {
+    Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/Assign2?user=root&password=");
     System.out.println("Successfully connected to the database!");
 
     try {
       ServerSocket serverSocket = new ServerSocket(8000);
       while(true){
         Socket socket = serverSocket.accept();  //no progression past this will be made until a connection is made.
+        System.out.println("New connection coming from " + socket.getInetAddress() + ":" + socket.getPort()+ ". Starting worker.");
         Worker worker = new Worker(socket, conn);
         new Thread(worker).start();
       }
     } catch (IOException e) {
       e.printStackTrace();
     }
-
   }
 }

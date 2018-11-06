@@ -1,10 +1,8 @@
 package server;
 
 import java.io.*;
-import java.net.InetAddress;
 import java.net.Socket;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -17,11 +15,10 @@ import java.sql.SQLException;
 public class Worker implements Runnable{
 
   private Socket socket;
-  private InetAddress ipAddress;
   private Connection db;
 
 
-  public Worker(Socket socket, Connection connection){
+  Worker(Socket socket, Connection connection){
     this.socket = socket;
     this.db = connection;
   }
@@ -31,9 +28,8 @@ public class Worker implements Runnable{
     try {
       DataInputStream dis = new DataInputStream(socket.getInputStream());
       DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
-      BufferedReader br = new BufferedReader(new InputStreamReader(dis));
 
-      String id = br.readLine();
+      int id = dis.readInt();
       boolean authenticated = isUserValid(id);
       dos.writeBoolean(authenticated);
 
@@ -46,15 +42,27 @@ public class Worker implements Runnable{
           dos.writeDouble(circleArea);
       }
     } catch (IOException | SQLException e) {
-      System.out.println(e + " on socket " + socket);
+      e.printStackTrace();
+      System.out.println(" on socket " + socket);
     }
   }
 
-  private boolean isUserValid(String id) throws SQLException {
+  /**
+   *
+   * @param id user id.
+   * @return boolean value of if the user has been found in the database.
+   * @throws SQLException Thrown in case of SQL injection or connection issues.
+   */
+  private boolean isUserValid(int id) throws SQLException {
     String statement = "select count(SID) from myStudents where STUD_ID = '"+id+"';";
     ResultSet rs = db.prepareStatement(statement).executeQuery();
+    rs.next();
     if(rs.getInt(1) == 1){
-      System.out.println("Successfully authenticated user with id '"+ id + "'.");
+      System.out.println(
+          "Successfully authenticated user with id '"+ id +
+          "' connected on "+ socket.getInetAddress() + ":" +
+          socket.getPort() + "."
+      );
       return true;
     }
 
@@ -62,6 +70,11 @@ public class Worker implements Runnable{
     return false;
   }
 
+  /**
+   * Calculates a circle area from the given radius.
+   * @param circleRadius radius of the circle.
+   * @return circle area
+   */
   private double calculateCircleArea(double circleRadius){
     //Area = PI * r^2
     return Math.PI * Math.pow(circleRadius, 2);
