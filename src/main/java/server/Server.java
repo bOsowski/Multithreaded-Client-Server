@@ -3,6 +3,9 @@ package server;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 
 /**
  * Student:              Bartosz Osowski
@@ -17,17 +20,21 @@ import java.net.Socket;
  **/
 public class Server {
 
-  public static void main(String args[]) {
+  public static void main(String args[]) throws SQLException {
     new Server();
   }
 
-  public Server() {
+  Connection conn;
+
+  public Server() throws SQLException {
+    conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/Assign2?user=root&password=");
+    System.out.println("Successfully connected to the database!");
 
     try {
       ServerSocket serverSocket = new ServerSocket(8000);
       while(true){
         Socket socket = serverSocket.accept();  //no progression past this will be made until a connection is made.
-        Worker worker = new Worker(socket);
+        Worker worker = new Worker(socket, conn);
         new Thread(worker).start();
       }
     } catch (IOException e) {
