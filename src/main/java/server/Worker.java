@@ -1,7 +1,5 @@
 package server;
 
-import com.oracle.tools.packager.IOUtils;
-
 import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
@@ -19,6 +17,7 @@ public class Worker implements Runnable{
     private Socket socket;
     private InetAddress ipAddress;
 
+
     public Worker(Socket socket){
         this.socket = socket;
     }
@@ -26,12 +25,16 @@ public class Worker implements Runnable{
     @Override
     public void run() {
         try {
-            System.out.println(socket.getOutputStream().toString());
-            double circleRadius = new DataInputStream(socket.getInputStream()).readDouble();
-            double circleArea = calculateCircleArea(circleRadius);
-            System.out.println("Given circle radius = "+circleRadius);
-            System.out.println("Calculated circle area = "+circleArea);
-            new DataOutputStream(socket.getOutputStream()).writeDouble(circleArea);
+            DataInputStream dis = new DataInputStream(socket.getInputStream());
+            DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
+            while(true){
+                System.out.println("Worker working.");
+                double circleRadius = dis.readDouble();
+                double circleArea = calculateCircleArea(circleRadius);
+                System.out.println("Given circle radius = "+circleRadius);
+                System.out.println("Calculated circle area = "+circleArea+"\n");
+                dos.writeDouble(circleArea);
+            }
         } catch (IOException e) {
             System.out.println(e + " on socket " + socket);
         }

@@ -17,24 +17,22 @@ import java.net.Socket;
  **/
 public class Server {
 
-    public static void main(String args[]) {
-        new Server();
+  public static void main(String args[]) {
+    new Server();
+  }
+
+  public Server() {
+
+    try {
+      ServerSocket serverSocket = new ServerSocket(8000);
+      while(true){
+        Socket socket = serverSocket.accept();  //no progression past this will be made until a connection is made.
+        Worker worker = new Worker(socket);
+        new Thread(worker).start();
+      }
+    } catch (IOException e) {
+      e.printStackTrace();
     }
 
-    public Server() {
-
-        try {
-            ServerSocket serverSocket = new ServerSocket(8000);
-            while(true){
-                Socket socket = serverSocket.accept();
-                Worker worker = new Worker(socket);
-                new Thread(worker).start();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-    }
-
-
+  }
 }
